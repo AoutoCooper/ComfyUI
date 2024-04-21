@@ -13,6 +13,7 @@ import nodes
 import comfy.model_management
 
 def get_input_data(inputs, class_def, unique_id, outputs={}, prompt={}, extra_data={}):
+    
     valid_inputs = class_def.INPUT_TYPES()
     input_data_all = {}
     for x in inputs:
@@ -121,6 +122,7 @@ def recursive_execute(server, prompt, outputs, current_item, extra_data, execute
     inputs = prompt[unique_id]['inputs']
     class_type = prompt[unique_id]['class_type']
     class_def = nodes.NODE_CLASS_MAPPINGS[class_type]
+    
     if unique_id in outputs:
         return (True, None, None)
 
