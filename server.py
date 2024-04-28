@@ -448,34 +448,40 @@ class PromptServer():
 
         @routes.post("/prompt")
         async def post_prompt(request):
-            
-            #this whole piece of code is a bit messy. i better refactor this to allow for a flow that's not so hardcoded
-            reader = await request.multipart()
+            logging.info('received new prompt')
             json_data = {}
-            image = None
-            while True:
-                part = await reader.next()
-                if part is None:
-                  break
-                if part.name == 'prompt':
-                   json_data = await part.json()
-                elif part.name == 'image':
-                    image = await part.read()
-            
-            #place image_base64_string as the data value on the numebr 18 "Load Image
-            if image: 
-                image_base64 = base64.b64encode(image)
-                image_base64_string = image_base64.decode('utf-8')
+            image_base64_string = None
+
+            # First try to handle as multipart
+            if request.content_type.startswith('multipart/'):
+                reader = await request.multipart()
+                image = None
+                while True:
+                    part = await reader.next()
+                    if part is None:
+                        break
+                    if part.name == 'prompt':
+                        json_data = await part.json()
+                    elif part.name == 'image':
+                        image = await part.read()
+                
+                # Encode image to base64 if an image is found
+                if image:
+                    image_base64 = base64.b64encode(image)
+                    image_base64_string = image_base64.decode('utf-8')
+                    # Check if the specific prompt field exists to place the image data
+                    if "15" in json_data.get('prompt', {}):
+                        logging.info('assigned the incoming image as prompt')
+                        json_data['prompt']['15']['inputs']['data'] = image_base64_string
+                    else:
+                        logging.warning("No image part found in the request for prompt '15'")
+                else:
+                    logging.info("No image found in multipart content")
             else:
-                #need to send a reply to the server
-                pass
-            
-            if "18" in json_data['prompt']:
-                json_data['prompt']['18']['inputs']['data'] = image_base64_string
-            else:
-                logging.warning("No image part found in the request")
-                #safely notify node.js server
-            
+                # If not multipart, then parse the entire request as JSON
+                json_data = await request.json()
+                logging.info("Handled non-multipart JSON request")
+
             
             logging.info("got prompt")
             resp_code = 200
