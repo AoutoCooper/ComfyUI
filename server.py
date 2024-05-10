@@ -470,11 +470,11 @@ class PromptServer():
                     image_base64 = base64.b64encode(image)
                     image_base64_string = image_base64.decode('utf-8')
                     # Check if the specific prompt field exists to place the image data
-                    if "15" in json_data.get('prompt', {}):
+                    if "61" in json_data.get('prompt', {}):
                         logging.info('assigned the incoming image as prompt')
-                        json_data['prompt']['15']['inputs']['data'] = image_base64_string
+                        json_data['prompt']['61']['inputs']['data'] = image_base64_string
                     else:
-                        logging.warning("No image part found in the request for prompt '15'")
+                        logging.warning("No image part found in the request for prompt '61'")
                 else:
                     logging.info("No image found in multipart content")
             else:
